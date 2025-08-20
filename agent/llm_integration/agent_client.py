@@ -5,9 +5,9 @@ class AgentClient(ABC):
         super().__init__()
 
     @abstractmethod
-    def generate_action(user_input: str, context: str) -> dict:
+    def generate_action(user_input: str) -> dict:
         pass
     
     @abstractmethod
-    def read_file(file_path: str) -> None:
+    def read_file(user_input: str, file_path: str) -> None:
         pass
