@@ -1,7 +1,7 @@
 [project]
 name = "friday"
 version = "0.1.0"
-description = "Add your description here"
+description = "Friday - your AI coding agent"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -11,3 +11,9 @@ dependencies = [
     "requests>=2.32.5",
     "rich>=14.1.0",
 ]
+
+[project.scripts]
+friday = "friday.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

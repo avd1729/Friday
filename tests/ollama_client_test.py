@@ -3,7 +3,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 import pytest
 from unittest.mock import patch, MagicMock
-from agent.llm_integration.ollama_client import OllamaClient
+from src.friday.llm_integration.ollama_client import OllamaClient
 
 @pytest.fixture
 def client():

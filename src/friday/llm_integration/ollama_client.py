@@ -1,15 +1,17 @@
-from agent.llm_integration.agent_client import AgentClient
+from friday.llm_integration.agent_client import AgentClient
+import importlib.resources as pkg_resources
 import yaml
 import requests
+from friday import config
 
-with open("config.yml", "r") as file:
-    config = yaml.safe_load(file)
+with pkg_resources.files(config).joinpath("config.yml").open("r") as file:
+    data = yaml.safe_load(file)
 
-base_endpoint = config["ollama"]["base_endpoint"]
-chat_completion = config["ollama"]["chat_completion"]
+base_endpoint = data["ollama"]["base_endpoint"]
+chat_completion = data["ollama"]["chat_completion"]
 endpoint = base_endpoint + chat_completion
 
-model = config["ollama"]["model"]
+model = data["ollama"]["model"]
 
 class OllamaClient(AgentClient):
     def __init__(self):
