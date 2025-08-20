@@ -6,25 +6,23 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
 import pyfiglet 
-from rich.prompt import IntPrompt
-from friday.llm_integration.ollama_client import OllamaClient
+from friday.llm_integration.agent_client import AgentClient
 
 console = Console()
-client = OllamaClient()
 
-def driver():
+def driver(client: AgentClient):
 
     ascii_title = pyfiglet.figlet_format("Friday", font="slant")
     console.print(Panel.fit(ascii_title, border_style="blue"))
 
     while True:
-        user_input = Prompt.ask("\n[bold cyan]What do you want to do?[/bold cyan] (or type 'quit')")
+        user_input = Prompt.ask("\n[bold cyan]Friday [/bold cyan]")
 
         if user_input.lower() in ["quit", "exit", "q"]:
-            console.print("[bold red]Exiting...[/bold red]")
+            console.print("[bold red]Byee...[/bold red]")
             break
 
         response = client.handle_input(user_input)
 
-        console.print(Panel(response, title="Friday Response", border_style="green"))
+        console.print(Panel(response, title="Response", border_style="green"))
 

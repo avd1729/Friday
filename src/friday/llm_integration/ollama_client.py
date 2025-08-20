@@ -7,14 +7,14 @@ from friday import config
 import re
 from pathlib import Path
 
-with pkg_resources.files(config).joinpath("config.yml").open("r") as file:
+with pkg_resources.files(config).joinpath("ollama_config.yml").open("r") as file:
     data = yaml.safe_load(file)
 
-base_endpoint = data["ollama"]["base_endpoint"]
-chat_completion = data["ollama"]["chat_completion"]
+base_endpoint = data["client"]["base_endpoint"]
+chat_completion = data["client"]["chat_completion"]
 endpoint = base_endpoint + chat_completion
 
-model = data["ollama"]["model"]
+model = data["client"]["model"]
 
 class OllamaClient(AgentClient):
     def __init__(self):
