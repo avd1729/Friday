@@ -3,6 +3,8 @@ import importlib.resources as pkg_resources
 import yaml
 import requests
 from friday import config
+import re
+from pathlib import Path
 
 with pkg_resources.files(config).joinpath("config.yml").open("r") as file:
     data = yaml.safe_load(file)
@@ -16,6 +18,34 @@ model = data["ollama"]["model"]
 class OllamaClient(AgentClient):
     def __init__(self):
         super().__init__()
+        self.root_dir = Path.cwd()
+
+    def handle_input(self, user_input: str) -> str:
+        # detect file mentions like "cli.py", "parser.py", "settings.json"
+        file_mentions = re.findall(r'\b[\w-]+\.\w+\b', user_input)
+
+        if file_mentions:
+            responses = []
+            for filename in file_mentions:
+                matches = list(self.root_dir.rglob(filename))  # search recursively
+
+                if not matches:
+                    responses.append(f"Could not find {filename} in project.")
+                    continue
+
+                if len(matches) > 1:
+                    responses.append(
+                        f"Multiple matches for {filename}: {', '.join(str(m) for m in matches)}"
+                    )
+                    continue
+
+                file_path = matches[0]
+                question = user_input.replace(filename, "").strip()
+                responses.append(self.read_file(question, file_path))
+            return "\n\n".join(responses)
+
+        # no file mentioned → general question
+        return self.generate_action(user_input)
 
     def generate_action(self, user_input):
         payload = {

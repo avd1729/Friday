@@ -15,25 +15,13 @@ def driver():
     console.print(Panel.fit("[bold green]Friday[/bold green]", border_style="blue"))
 
     while True:
-        console.print("\n[cyan]Choose an action:[/cyan]")
-        console.print("[1] Ask a question")
-        console.print("[2] Read a file")
-        console.print("[3] Quit")
+        user_input = Prompt.ask("\n[bold cyan]What do you want to do?[/bold cyan] (or type 'quit')")
 
-        choice = IntPrompt.ask("Enter choice", choices=["1", "2", "3"])
-
-        if choice == 1:
-            question = Prompt.ask("[bold yellow]Enter your question[/bold yellow]")
-            response = client.generate_action(question)
-            console.print(Panel(response, title="Model Response", border_style="green"))
-
-        elif choice == 2:
-            file_path = Prompt.ask("[bold yellow]Enter file path[/bold yellow]")
-            question = Prompt.ask("[bold yellow]What do you want to know about this file?[/bold yellow]")
-            response = client.read_file(question, file_path)
-            console.print(Panel(response, title="File Analysis", border_style="magenta"))
-
-        elif choice == 3:
+        if user_input.lower() in ["quit", "exit", "q"]:
             console.print("[bold red]Exiting...[/bold red]")
             break
+
+        response = client.handle_input(user_input)
+
+        console.print(Panel(response, title="Friday Response", border_style="green"))
 
