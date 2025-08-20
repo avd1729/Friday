@@ -1,4 +1,4 @@
-from agent_client import AgentClient
+from agent.llm_integration.agent_client import AgentClient
 import yaml
 import requests
 
@@ -18,20 +18,17 @@ class OllamaClient(AgentClient):
     def generate_action(self, user_input):
         payload = {
             "model": model,
-            "messages": [
-                {"role": "user", "content": user_input}
-            ],
+            "messages": [{"role": "user", "content": user_input}],
             "stream": False
         }
-
         response = requests.post(endpoint, json=payload)
-        print("Status:", response.status_code)
-        print("Response:", response.json())
+        response.raise_for_status()
+        return response.json()["message"]["content"]
 
     def read_file(self, user_input, file_path):
         with open(file_path, "r") as f:
             file_content = f.read()
-        
+
         payload = {
             "model": model,
             "messages": [
@@ -40,12 +37,6 @@ class OllamaClient(AgentClient):
             ],
             "stream": False
         }
-
         response = requests.post(endpoint, json=payload)
-        print("Status:", response.status_code)
-        print("Response:", response.json())
-        
-
-# test = OllamaClient()
-# test.read_file("Explain this file", "agent/llm_integration/agent_client.py")
-# test.generate_action("What is python?")
+        response.raise_for_status()
+        return response.json()["message"]["content"]
