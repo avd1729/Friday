@@ -1,4 +1,5 @@
 from friday.llm_integration.agent_client import AgentClient
+from friday.prompts import FILE_ANALYSIS_SYSTEM_PROMPT
 import importlib.resources as pkg_resources
 import yaml
 import requests
@@ -64,7 +65,7 @@ class OllamaClient(AgentClient):
         payload = {
             "model": model,
             "messages": [
-                {"role": "system", "content": "You are a helpful assistant that analyzes documents."},
+                {"role": "system", "content": FILE_ANALYSIS_SYSTEM_PROMPT},
                 {"role": "user", "content": f"Here is a file:\n\n{file_content}\n\nQuestion: {user_input}"}
             ],
             "stream": False
