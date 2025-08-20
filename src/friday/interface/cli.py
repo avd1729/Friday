@@ -5,6 +5,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
+import pyfiglet 
 from rich.prompt import IntPrompt
 from friday.llm_integration.ollama_client import OllamaClient
 
@@ -12,7 +13,9 @@ console = Console()
 client = OllamaClient()
 
 def driver():
-    console.print(Panel.fit("[bold green]Friday[/bold green]", border_style="blue"))
+
+    ascii_title = pyfiglet.figlet_format("Friday", font="slant")
+    console.print(Panel.fit(ascii_title, border_style="blue"))
 
     while True:
         user_input = Prompt.ask("\n[bold cyan]What do you want to do?[/bold cyan] (or type 'quit')")
