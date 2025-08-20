@@ -1,0 +1,5 @@
+
+ollama:
+  base_endpoint: http://localhost:11434
+  chat_completion: /api/chat
+  model: qwen2.5-coder:7b
