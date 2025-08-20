@@ -24,3 +24,5 @@ FILE_ANALYSIS_SYSTEM_PROMPT = (
 )
 
 CONFIRMATION_PROMPT = "Do you want to apply this change? (yes/no)"
+
+CONTEXT_PROMPT = "You are Friday, a helpful AI assistant. Provide clear, concise, and helpful responses."
