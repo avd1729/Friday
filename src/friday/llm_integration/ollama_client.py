@@ -1,10 +1,10 @@
 from friday.llm_integration.agent_client import AgentClient
-from friday.prompts import FILE_ANALYSIS_SYSTEM_PROMPT
+from friday.prompts import FILE_ANALYSIS_SYSTEM_PROMPT, GENERAL_SYSTEM_PROMPT
 import importlib.resources as pkg_resources
 import yaml
 import requests
 from friday import config
-import re
+from friday.utils.parse_json import parse_json_from_model
 from pathlib import Path
 
 class OllamaClient(AgentClient):
@@ -21,32 +21,26 @@ class OllamaClient(AgentClient):
         self.endpoint = base_endpoint + chat_completion
         self.model = data["client"]["model"]
 
-    def handle_input(self, user_input: str) -> str:
-        # detect file mentions like "cli.py", "parser.py", "settings.json"
-        file_mentions = re.findall(r'\b[\w-]+\.\w+\b', user_input)
+    def handle_input(self, user_input: str):
 
-        if file_mentions:
-            responses = []
-            for filename in file_mentions:
-                matches = list(self.root_dir.rglob(filename))  # search recursively
+        prompt = f"{GENERAL_SYSTEM_PROMPT}\nUser query: {user_input}\nRespond ONLY with JSON."
+        decision = self.generate_action(prompt)
+        decision = parse_json_from_model(decision)
 
-                if not matches:
-                    responses.append(f"Could not find {filename} in project.")
-                    continue
+        action = decision.get("action")
+        if action == "read_file":
+            file_name = decision.get("file")
+            question = decision.get("question")
+            matches = list(self.root_dir.rglob(file_name))
+            if not matches:
+                return f"Could not find {file_name}"
+            file_path = matches[0]
+            return self.read_file(question, file_path)
+        elif action == "generate_action":
+            return self.generate_action(decision.get("question"))
+        else:
+            return f"Unknown action: {action}"
 
-                if len(matches) > 1:
-                    responses.append(
-                        f"Multiple matches for {filename}: {', '.join(str(m) for m in matches)}"
-                    )
-                    continue
-
-                file_path = matches[0]
-                question = user_input.replace(filename, "").strip()
-                responses.append(self.read_file(question, file_path))
-            return "\n\n".join(responses)
-
-        # no file mentioned → general question
-        return self.generate_action(user_input)
 
     def generate_action(self, user_input):
         payload = {
