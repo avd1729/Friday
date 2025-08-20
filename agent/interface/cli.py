@@ -1,3 +1,7 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
