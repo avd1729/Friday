@@ -7,19 +7,19 @@ from friday import config
 import re
 from pathlib import Path
 
-with pkg_resources.files(config).joinpath("ollama_config.yml").open("r") as file:
-    data = yaml.safe_load(file)
-
-base_endpoint = data["client"]["base_endpoint"]
-chat_completion = data["client"]["chat_completion"]
-endpoint = base_endpoint + chat_completion
-
-model = data["client"]["model"]
-
 class OllamaClient(AgentClient):
     def __init__(self):
-        super().__init__()
+
         self.root_dir = Path.cwd()
+
+        with pkg_resources.files(config).joinpath("ollama_config.yml").open("r") as file:
+            data = yaml.safe_load(file)
+
+        base_endpoint = data["client"]["base_endpoint"]
+        chat_completion = data["client"]["chat_completion"]
+
+        self.endpoint = base_endpoint + chat_completion
+        self.model = data["client"]["model"]
 
     def handle_input(self, user_input: str) -> str:
         # detect file mentions like "cli.py", "parser.py", "settings.json"
@@ -50,11 +50,11 @@ class OllamaClient(AgentClient):
 
     def generate_action(self, user_input):
         payload = {
-            "model": model,
+            "model": self.model,
             "messages": [{"role": "user", "content": user_input}],
             "stream": False
         }
-        response = requests.post(endpoint, json=payload)
+        response = requests.post(self.endpoint, json=payload)
         response.raise_for_status()
         return response.json()["message"]["content"]
 
@@ -63,13 +63,13 @@ class OllamaClient(AgentClient):
             file_content = f.read()
 
         payload = {
-            "model": model,
+            "model": self.model,
             "messages": [
                 {"role": "system", "content": FILE_ANALYSIS_SYSTEM_PROMPT},
                 {"role": "user", "content": f"Here is a file:\n\n{file_content}\n\nQuestion: {user_input}"}
             ],
             "stream": False
         }
-        response = requests.post(endpoint, json=payload)
+        response = requests.post(self.endpoint, json=payload)
         response.raise_for_status()
         return response.json()["message"]["content"]
