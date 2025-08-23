@@ -11,9 +11,6 @@ class ConversationMemory(ABC):
     def add_to_history(self, role: str, content: str, metadata: Optional[Dict]):
         pass
 
-    @abstractmethod
-    def add_to_history(self, role: str, content: str, metadata: Optional[Dict]):
-        pass
 
     @abstractmethod
     def truncate_content(self, content: str) -> str:

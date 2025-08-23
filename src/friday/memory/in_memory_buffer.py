@@ -2,7 +2,7 @@ from typing import List, Dict, Optional
 from datetime import datetime
 from friday.memory.conversation_memory import ConversationMemory
 
-class InMemoryBuffer(ConversationMemory):
+class InMemoryConversationMemory(ConversationMemory):
     def __init__(self, max_context_messages: int = 20, max_tokens_per_message: int = 2000, system_prompt: str = None):
         self.conversation_history: List[Dict[str, str]] = []
         self.max_context_messages = max_context_messages
