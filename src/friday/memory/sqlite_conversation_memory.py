@@ -135,8 +135,40 @@ class SqliteConversationMemory(BaseConversationMemory):
             "last_action": last_action
         }
     
-    def get_messages(self, limit = None):
-        return super().get_messages(limit)
+    def get_messages(self, limit=None):
+        conn = self._connect()
+        cursor = conn.cursor()
+
+        query = """
+            SELECT role, content, metadata, timestamp 
+            FROM messages 
+            WHERE session_id = ? 
+            ORDER BY timestamp ASC
+        """
+        if limit:
+            query += f" LIMIT {limit}"
+
+        cursor.execute(query, (self.session_id,))
+        rows = cursor.fetchall()
+        conn.close()
+
+        messages = []
+        for role, content, metadata, timestamp in rows:
+            msg = {
+                "role": role,
+                "content": content,
+                "timestamp": datetime.fromtimestamp(timestamp).isoformat()
+            }
+            if metadata:
+                try:
+                    msg["metadata"] = json.loads(metadata)
+                except:
+                    msg["metadata"] = {}
+            messages.append(msg)
+
+        return messages
+
+
     
     def set_limits(self, max_messages = None, max_tokens_per_message = None):
         return super().set_limits(max_messages, max_tokens_per_message)
