@@ -1,13 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict
+from friday.memory.base_conversation_memory import BaseConversationMemory
 
 class AgentClient(ABC):
     """
     Abstract base class for LLM agent clients.
     Defines the interface for agent implementations that interact with LLMs and manage conversation context.
     """
-    def __init__(self):
-        super().__init__()
+    def __init__(self, conversation_memory: BaseConversationMemory):
+        self.conversation_memory = conversation_memory
 
     @abstractmethod
     def generate_action(user_input: str) -> dict:

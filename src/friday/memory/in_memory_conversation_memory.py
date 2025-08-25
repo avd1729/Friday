@@ -2,9 +2,10 @@
 from typing import List, Dict, Optional
 from datetime import datetime
 from .base_conversation_memory import BaseConversationMemory
+from friday.prompts import GENERAL_SYSTEM_PROMPT
 
 class InMemoryConversationMemory(BaseConversationMemory):
-    def __init__(self, max_context_messages: int = 20, max_tokens_per_message: int = 2000, system_prompt: str = None):
+    def __init__(self, max_context_messages: int = 20, max_tokens_per_message: int = 2000, system_prompt: str = GENERAL_SYSTEM_PROMPT):
         self.conversation_history: List[Dict[str, str]] = []
         self.max_context_messages = max_context_messages
         self.max_tokens_per_message = max_tokens_per_message

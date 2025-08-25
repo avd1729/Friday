@@ -23,7 +23,7 @@ class OllamaClient(AgentClient):
         self.model = data["client"]["model"]
 
         if memory is None:
-            self.memory = InMemoryConversationMemory(max_context_messages, max_tokens_per_message, GENERAL_SYSTEM_PROMPT)
+            self.memory = InMemoryConversationMemory(max_context_messages, max_tokens_per_message)
         else:
             self.memory = memory
     

@@ -3,8 +3,10 @@ import sqlite3
 import json
 import os
 from datetime import datetime
+from friday.prompts import GENERAL_SYSTEM_PROMPT
+
 class SqliteConversationMemory(BaseConversationMemory):
-    def __init__(self, session_id=None, user_id=None, db_path="db/conversation_memory.db", system_prompt: str = None):
+    def __init__(self, session_id=None, user_id=None, db_path="db/conversation_memory.db", system_prompt: str = GENERAL_SYSTEM_PROMPT):
         self.session_start_time = datetime.now()
         self.session_id = session_id
         self.user_id = user_id
@@ -66,7 +68,7 @@ class SqliteConversationMemory(BaseConversationMemory):
         cursor.execute(
             """
             INSERT INTO SESSIONS (user_id, created_at) VALUES (?, ?)
-            """, (user_id, datetime.now())
+            """, (user_id, datetime.now().timestamp())
         )
 
         conn.commit()
@@ -100,7 +102,16 @@ class SqliteConversationMemory(BaseConversationMemory):
         conn.close()
     
     def clear(self):
-        pass
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM messages WHERE session_id = ?",
+            (self.session_id,)
+        )
+        conn.commit()
+        conn.close()
+        if self.system_prompt:
+            self.add_to_history("system", self.system_prompt)
     
     def get_summary(self):
         conn = self._connect()
@@ -115,7 +126,13 @@ class SqliteConversationMemory(BaseConversationMemory):
             "SELECT created_at FROM sessions WHERE session_id = ?", (self.session_id,)
         )
         row = cursor.fetchone()
-        session_start_time = datetime.fromtimestamp(row[0]) if row else datetime.now()
+        if row and row[0] is not None:
+            try:
+                session_start_time = datetime.fromtimestamp(float(row[0]))
+            except Exception:
+                session_start_time = datetime.now()
+        else:
+            session_start_time = datetime.now()
         session_duration = str(datetime.now() - session_start_time)
 
         # Unique files accessed

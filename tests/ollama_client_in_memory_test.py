@@ -4,10 +4,12 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 import pytest
 from unittest.mock import patch, MagicMock
 from friday.llm_integration.ollama_client import OllamaClient
+from friday.memory.in_memory_conversation_memory import InMemoryConversationMemory
+from friday.prompts import GENERAL_SYSTEM_PROMPT
 
 @pytest.fixture
 def client():
-    return OllamaClient()
+    return OllamaClient(memory=InMemoryConversationMemory(system_prompt=GENERAL_SYSTEM_PROMPT))
 
 def mock_post_generate(*args, **kwargs):
     mock_resp = MagicMock()
