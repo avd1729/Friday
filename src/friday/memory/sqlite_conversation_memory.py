@@ -1,8 +1,9 @@
 from friday.memory.base_conversation_memory import BaseConversationMemory
 import sqlite3
+import json
 from datetime import time
 class SqliteConversationMemory(BaseConversationMemory):
-    def __init__(self, session_id = None, user_id = None, db_path="conversation_memory.db"):
+    def __init__(self, session_id = None, user_id = None, db_path="db/conversation_memory.db"):
         self.session_id = session_id
         self.user_id = user_id
         self.db_path = db_path
@@ -54,7 +55,7 @@ class SqliteConversationMemory(BaseConversationMemory):
         cursor.execute(
             """
             INSERT INTO SESSIONS (user_id, created_at) VALUES (?, ?)
-            """, (user_id, time.time)
+            """, (user_id, time.time())
         )
 
         conn.commit()
@@ -63,7 +64,17 @@ class SqliteConversationMemory(BaseConversationMemory):
         return session_id
     
     def add_to_history(self, role, content, metadata = None):
-        return super().add_to_history(role, content, metadata)
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO MESSAGES (session_id, role, content, metadata, timestamp)
+            VALUES (?, ?, ?, ?, ?)
+            """, (self.session_id, role, content, json.dumps(metadata) if metadata else None, time.time())
+        )
+
+        conn.commit()
+        conn.close()
     
     def clear(self):
         return super().clear()
