@@ -27,8 +27,6 @@ class OllamaClient(AgentClient):
         else:
             self.memory = memory
     
-
-    
     def _build_context_prompt(self, current_prompt: str) -> str:
         history = self.memory.get_messages()
         if not history:
