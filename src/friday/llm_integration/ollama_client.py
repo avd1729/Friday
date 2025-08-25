@@ -10,9 +10,11 @@ from typing import List, Dict, Optional
 from datetime import datetime
 from friday.memory.base_conversation_memory import BaseConversationMemory
 from friday.memory.in_memory_conversation_memory import InMemoryConversationMemory
+from friday.utils.logger import setup_logger
 
 class OllamaClient(AgentClient):
     def __init__(self, max_context_messages: int = 20, max_tokens_per_message: int = 2000, memory: BaseConversationMemory = None):
+        self.logger = setup_logger('friday')
         self.root_dir = Path.cwd()
         # Load configuration
         with pkg_resources.files(config).joinpath("ollama_config.yml").open("r") as file:
@@ -42,12 +44,16 @@ class OllamaClient(AgentClient):
         return "\n".join(context_parts)
     
     def handle_input(self, user_input: str):
+        self.logger.info(f"User query: {user_input}")
         self.memory.add_to_history("user", user_input)
         decision = self.generate_action(f"{user_input}\nRespond ONLY with JSON.", include_history=True)
+        self.logger.info(f"Message sent to agent: {user_input}\nRespond ONLY with JSON.")
+        self.logger.info(f"Agent raw response: {decision}")
         decision_parsed = parse_json_from_model(decision)
         if not decision_parsed:
             error_msg = "Failed to parse decision from model"
             self.memory.add_to_history("assistant", error_msg, {"error": "parse_failure"})
+            self.logger.error(error_msg)
             return error_msg
         action = decision_parsed.get("action")
         response = None
@@ -72,6 +78,7 @@ class OllamaClient(AgentClient):
         else:
             response = f"Unknown action: {action}"
             self.memory.add_to_history("assistant", response, {"error": "unknown_action"})
+        self.logger.info(f"Final response to user: {response}")
         return response
     
     def generate_natural_response(self, user_input: str):
@@ -92,6 +99,7 @@ class OllamaClient(AgentClient):
             "messages": messages,
             "stream": False
         }
+        self.logger.info(f"Payload sent to agent (generate_natural_response): {payload}")
         response = requests.post(self.endpoint, json=payload)
         response.raise_for_status()
         return response.json()["message"]["content"]
@@ -111,6 +119,7 @@ class OllamaClient(AgentClient):
             "messages": messages,
             "stream": False
         }
+        self.logger.info(f"Payload sent to agent (generate_action): {payload}")
         response = requests.post(self.endpoint, json=payload)
         response.raise_for_status()
         return response.json()["message"]["content"]
