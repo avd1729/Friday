@@ -6,7 +6,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
 import pyfiglet 
-from friday.llm_integration.agent_client import AgentClient
+from friday.llm_integration.base_client import AgentClient
 
 console = Console()
 

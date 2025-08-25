@@ -1,8 +1,9 @@
+
 from typing import List, Dict, Optional
 from datetime import datetime
-from friday.memory.conversation_memory import ConversationMemory
+from .base_conversation_memory import BaseConversationMemory
 
-class InMemoryConversationMemory(ConversationMemory):
+class InMemoryConversationMemory(BaseConversationMemory):
     def __init__(self, max_context_messages: int = 20, max_tokens_per_message: int = 2000, system_prompt: str = None):
         self.conversation_history: List[Dict[str, str]] = []
         self.max_context_messages = max_context_messages
@@ -31,7 +32,7 @@ class InMemoryConversationMemory(ConversationMemory):
 
     def manage_context_size(self):
         if len(self.conversation_history) > self.max_context_messages:
-            system_msg = self.conversation_history[0] if self.conversation_history[0]["role"] == "system" else None
+            system_msg = self.conversation_history[0] if self.conversation_history and self.conversation_history[0]["role"] == "system" else None
             recent_messages = self.conversation_history[-(self.max_context_messages-1):]
             if system_msg:
                 self.conversation_history = [system_msg] + recent_messages
@@ -61,9 +62,9 @@ class InMemoryConversationMemory(ConversationMemory):
             return self.conversation_history[-limit:]
         return self.conversation_history.copy()
 
-    def set_limits(self, max_messages: int = None, max_tokens_per_message: int = None):
-        if max_messages:
-            self.max_context_messages = max_messages
+    def set_limits(self, max_context_messages: int = None, max_tokens_per_message: int = None):
+        if max_context_messages:
+            self.max_context_messages = max_context_messages
             self.manage_context_size()
         if max_tokens_per_message:
             self.max_tokens_per_message = max_tokens_per_message

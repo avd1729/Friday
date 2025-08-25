@@ -1,4 +1,4 @@
-from friday.llm_integration.agent_client import AgentClient
+from friday.llm_integration.base_client import AgentClient
 from friday.prompts import FILE_ANALYSIS_SYSTEM_PROMPT, GENERAL_SYSTEM_PROMPT, CONTEXT_PROMPT
 import importlib.resources as pkg_resources
 import yaml
@@ -8,10 +8,11 @@ from friday.utils.parse_json import parse_json_from_model
 from pathlib import Path
 from typing import List, Dict, Optional
 from datetime import datetime
-from friday.memory.in_memory import InMemoryConversationMemory
+from friday.memory.base_conversation_memory import BaseConversationMemory
+from friday.memory.in_memory_conversation_memory import InMemoryConversationMemory
 
 class OllamaClient(AgentClient):
-    def __init__(self, max_context_messages: int = 20, max_tokens_per_message: int = 2000):
+    def __init__(self, max_context_messages: int = 20, max_tokens_per_message: int = 2000, memory: BaseConversationMemory = None):
         self.root_dir = Path.cwd()
         # Load configuration
         with pkg_resources.files(config).joinpath("ollama_config.yml").open("r") as file:
@@ -20,8 +21,11 @@ class OllamaClient(AgentClient):
         chat_completion = data["client"]["chat_completion"]
         self.endpoint = base_endpoint + chat_completion
         self.model = data["client"]["model"]
-        # Use InMemoryConversationMemory for context management
-        self.memory = InMemoryConversationMemory(max_context_messages, max_tokens_per_message, GENERAL_SYSTEM_PROMPT)
+
+        if memory is None:
+            self.memory = InMemoryConversationMemory(max_context_messages, max_tokens_per_message, GENERAL_SYSTEM_PROMPT)
+        else:
+            self.memory = memory
     
 
     
