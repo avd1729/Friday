@@ -10,7 +10,7 @@ class BaseConversationMemory(ABC):
         session_id (Optional[str]): Identifier for the conversation session (useful for persistent storage).
         user_id (Optional[str]): Identifier for the user (useful for multi-user systems).
     """
-    def __init__(self, session_id: Optional[str] = None, user_id: Optional[str] = None):
+    def __init__(self, session_id: Optional[str] = None, user_id: Optional[str] = None, db_path: Optional[str] = None):
         self.session_id = session_id
         self.user_id = user_id
 
