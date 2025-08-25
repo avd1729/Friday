@@ -8,7 +8,7 @@ from friday.utils.parse_json import parse_json_from_model
 from pathlib import Path
 from typing import List, Dict, Optional
 from datetime import datetime
-from friday.memory.in_memory_buffer import InMemoryConversationMemory
+from friday.memory.in_memory import InMemoryConversationMemory
 
 class OllamaClient(AgentClient):
     def __init__(self, max_context_messages: int = 20, max_tokens_per_message: int = 2000):
