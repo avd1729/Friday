@@ -10,6 +10,7 @@ from typing import List, Dict, Optional
 from datetime import datetime
 from friday.memory.base_conversation_memory import BaseConversationMemory
 from friday.memory.in_memory_conversation_memory import InMemoryConversationMemory
+from friday.memory.hybrid_conversation_memory import HybridConversationMemory
 from friday.utils.logger import setup_logger
 
 class OllamaClient(AgentClient):
@@ -25,7 +26,7 @@ class OllamaClient(AgentClient):
         self.model = data["client"]["model"]
 
         if memory is None:
-            self.memory = InMemoryConversationMemory(max_context_messages, max_tokens_per_message)
+            self.memory = HybridConversationMemory(max_context_messages, max_tokens_per_message)
         else:
             self.memory = memory
     
