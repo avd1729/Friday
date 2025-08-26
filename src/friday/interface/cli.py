@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
-
+import time
 
 from rich.console import Console
 from rich.panel import Panel
@@ -22,6 +22,7 @@ def driver(client: AgentClient):
 
     while True:
         user_input = Prompt.ask("\n[bold cyan]Friday [/bold cyan]")
+        start = time.perf_counter()
         logger.info(f"[CLI] User input: {user_input}")
 
         if user_input.lower() in ["quit", "exit", "q"]:
@@ -30,7 +31,8 @@ def driver(client: AgentClient):
             break
 
         response = client.handle_input(user_input)
+        end = time.perf_counter()
         logger.info(f"[CLI] Response sent to user: {response}")
 
-        console.print(Panel(response, title="Response", border_style="green"))
+        console.print(Panel(response, title=f"Response {end - start:.3f} s", border_style="green"))
 
