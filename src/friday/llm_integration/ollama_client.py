@@ -72,6 +72,29 @@ class OllamaClient(AgentClient):
                 "file": file_name,
                 "found": bool(matches)
             })
+        elif action == "read_files":
+            file_names = decision_parsed.get("files", [])
+            question = decision_parsed.get("question")
+            responses = []
+            found_files = []
+            not_found_files = []
+            for file_name in file_names:
+                matches = list(self.root_dir.rglob(file_name))
+                if not matches:
+                    not_found_files.append(file_name)
+                    responses.append(f"Could not find {file_name}")
+                else:
+                    file_path = matches[0]
+                    found_files.append(file_name)
+                    resp = self.read_file(question, file_path)
+                    responses.append(f"--- {file_name} ---\n{resp}")
+            response = "\n\n".join(responses)
+            self.memory.add_to_history("assistant", response, {
+                "action": "read_files",
+                "files": file_names,
+                "found": found_files,
+                "not_found": not_found_files
+            })
         elif action == "generate_action":
             question = decision_parsed.get("question")
             response = self.generate_natural_response(question)
