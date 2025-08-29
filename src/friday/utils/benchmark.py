@@ -1,29 +1,16 @@
 import time
-from typing import Callable, Any, Dict
+from typing import Callable, Any, Dict, List
 
-def benchmark_function(func: Callable, *args, repeat: int = 3, **kwargs) -> Dict[str, Any]:
-    """
-    Benchmarks a function by running it multiple times and returning timing stats.
-    Returns a dict with average, min, max, and all timings.
-    """
-    timings = []
-    for _ in range(repeat):
+def benchmark_function(func: Callable, prompts: List[str], memory_backend, *args, **kwargs) -> List[Dict[str, Any]]:
+    results = []
+    for prompt in prompts:
         start = time.perf_counter()
-        result = func(*args, **kwargs)
+        result = func(memory_backend, prompt, *args, **kwargs)
         end = time.perf_counter()
-        timings.append(end - start)
-    return {
-        'function': func.__name__,
-        'repeat': repeat,
-        'average_time': sum(timings) / repeat,
-        'min_time': min(timings),
-        'max_time': max(timings),
-        'all_timings': timings,
-        'last_result': result
-    }
-
-
-def compare_benchmarks(benchmarks: Dict[str, Dict[str, Any]]):
-    print("Benchmark Results:")
-    for name, stats in benchmarks.items():
-        print(f"{name}: avg={stats['average_time']:.4f}s min={stats['min_time']:.4f}s max={stats['max_time']:.4f}s")
+        results.append({
+            'function': func.__name__,
+            'prompt': prompt,
+            'time_taken': end - start,
+            'result': result
+        })
+    return results
