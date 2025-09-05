@@ -11,6 +11,7 @@ from datetime import datetime
 from friday.memory.base_conversation_memory import BaseConversationMemory
 from friday.memory.in_memory_conversation_memory import InMemoryConversationMemory
 from friday.memory.hybrid_conversation_memory import HybridConversationMemory
+from friday.memory.no_memory_conversation_memory import NoMemoryConversationMemory
 from friday.utils.logger import setup_logger
 
 class OllamaClient(AgentClient):
@@ -26,7 +27,7 @@ class OllamaClient(AgentClient):
         self.model = data["client"]["model"]
 
         if memory is None:
-            self.memory = HybridConversationMemory(max_context_messages, max_tokens_per_message)
+            self.memory = NoMemoryConversationMemory()
         else:
             self.memory = memory
     
@@ -106,15 +107,16 @@ class OllamaClient(AgentClient):
         return response
     
     def generate_natural_response(self, user_input: str):
+        import time
         messages = []
         history = self.memory.get_messages()
-        if history:
-            for msg in history:
-                if msg["role"] == "system":
-                    messages.append({"role": "system", "content": CONTEXT_PROMPT})
-                elif msg["role"] in ["user", "assistant"]:
-                    if msg["content"] != user_input:
-                        messages.append({"role": msg["role"], "content": msg["content"]})
+        # Only include user prompts (not assistant responses) in the context
+        user_history = [msg for msg in history if msg["role"] == "user"]
+        if user_history:
+            messages.append({"role": "system", "content": CONTEXT_PROMPT})
+            for msg in user_history[-5:]:  # Only last 5 user prompts
+                if msg["content"] != user_input:
+                    messages.append({"role": "user", "content": msg["content"]})
         else:
             messages.append({"role": "system", "content": CONTEXT_PROMPT})
         messages.append({"role": "user", "content": user_input})
@@ -124,17 +126,25 @@ class OllamaClient(AgentClient):
             "stream": False
         }
         self.logger.info(f"Payload sent to agent (generate_natural_response): {payload}")
+        self.logger.info(f"Payload size: {len(str(payload))} characters, {len(messages)} messages.")
+        start_time = time.perf_counter()
         response = requests.post(self.endpoint, json=payload)
+        elapsed = time.perf_counter() - start_time
+        self.logger.info(f"Ollama API call took {elapsed:.3f} seconds.")
         response.raise_for_status()
         return response.json()["message"]["content"]
     
     def generate_action(self, user_input: str, include_history: bool = False):
+        import time
         messages = []
         history = self.memory.get_messages()
+        # Only include user prompts (not assistant responses) in the context for action generation
         if include_history and history:
-            for msg in history:
-                if msg["role"] in ["user", "assistant", "system"]:
-                    messages.append({"role": msg["role"], "content": msg["content"]})
+            user_history = [msg for msg in history if msg["role"] == "user"]
+            messages.append({"role": "system", "content": GENERAL_SYSTEM_PROMPT})
+            for msg in user_history[-5:]:  # Only last 5 user prompts
+                if msg["content"] != user_input:
+                    messages.append({"role": "user", "content": msg["content"]})
         else:
             messages.append({"role": "system", "content": GENERAL_SYSTEM_PROMPT})
         messages.append({"role": "user", "content": user_input})
@@ -144,11 +154,16 @@ class OllamaClient(AgentClient):
             "stream": False
         }
         self.logger.info(f"Payload sent to agent (generate_action): {payload}")
+        self.logger.info(f"Payload size: {len(str(payload))} characters, {len(messages)} messages.")
+        start_time = time.perf_counter()
         response = requests.post(self.endpoint, json=payload)
+        elapsed = time.perf_counter() - start_time
+        self.logger.info(f"Ollama API call took {elapsed:.3f} seconds.")
         response.raise_for_status()
         return response.json()["message"]["content"]
     
     def read_file(self, user_input: str, file_path: Path):
+        import time
         with open(file_path, "r") as f:
             file_content = f.read()
         context_info = ""
@@ -166,7 +181,10 @@ class OllamaClient(AgentClient):
             "messages": messages,
             "stream": False
         }
+        start_time = time.perf_counter()
         response = requests.post(self.endpoint, json=payload)
+        elapsed = time.perf_counter() - start_time
+        self.logger.info(f"Ollama API call took {elapsed:.3f} seconds.")
         response.raise_for_status()
         return response.json()["message"]["content"]
     
